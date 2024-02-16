@@ -1,4 +1,4 @@
-from server.server import Server
+from client.client import Client
 
-server = Server()
-server.run()
+client = Client()
+client.run()
