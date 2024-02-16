@@ -23,5 +23,12 @@ class Graphics:
     print('++++++++++++++++++\n')
     print('SET A PASSWORD FOR THE SERVER:')
 
-  def display_join_server_menu(self):
+  def display_join_server_menu(self, server_fields):
     self.display_logo()
+
+    for key, val in server_fields.items():
+      if val is not None:
+        print(f'{key}: {val}')
+      else:
+        print(f'\nENTER {key}:')
+        break
