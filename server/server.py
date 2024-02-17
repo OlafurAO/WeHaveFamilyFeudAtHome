@@ -53,8 +53,7 @@ class Server:
 		while True:
 			try:
 				data = client_socket.recv(1024).decode()
-				print(data)
-				#client_socket.sendall('hehehe'.encode())
+				client_socket.sendall('hehehe'.encode())
 				pass
 			except ConnectionAbortedError:
 				break
