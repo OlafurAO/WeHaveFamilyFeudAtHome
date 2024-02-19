@@ -3,10 +3,12 @@ import time
 import socket
 import selectors
 import types
+import json
 from enum import Enum
 
 from server.server import Server
 from menu.menu import Menu
+from graphics.graphics import Graphics
 
 class ClientState(Enum):
   MENU = 0
@@ -17,29 +19,36 @@ class Client:
     self.server = Server()
     self.selector = selectors.DefaultSelector()
     self.menu = Menu()
+    self.graphics = Graphics()
+
+    self.client_state = ClientState.MENU
     self.client_socket = None
     self.awaiting_server_reply = False
-    self.client_state = ClientState.MENU
+    self.last_server_msg = None
+
     self.join_server_fields = { 'IP_ADDRESS': None, 'PORT': None, 'PASSWORD': None }
     self.quit = False
+
     print('\033[38;2;0;255;0m')
 
   def run(self):
     while not self.quit:
       self.update()
-      
+
     print('\033[0m')
 
   def update(self):
-    if self.client_state == ClientState.MENU:
-      os.system('cls' if os.name == 'nt' else 'clear')
-      self.menu.update_menu(self.server.get_host_info(), self.join_server_fields)
-    elif self.client_state == ClientState.PLAY:
-      pass
-
     if self.client_socket is not None:
       self.receive_server_message()
-      
+
+    if self.client_state == ClientState.MENU:
+      self.clear_screen()
+      self.menu.update_menu(self.server.get_host_info(), self.join_server_fields)
+    elif self.client_state == ClientState.PLAY:
+      if self.last_server_msg is not None and self.last_server_msg['game_state'] == 'PLAY':
+        self.clear_screen()
+        self.graphics.display_game_board(self.last_server_msg['question_status'])
+
     if not self.awaiting_server_reply:
       print('>$', end='')
       self.process_command(input())
@@ -70,6 +79,7 @@ class Client:
         self.selector.register(self.client_socket, events, data=data)
 
         self.client_state = ClientState.PLAY
+        self.awaiting_server_reply = True
         self.receive_server_message()
         break
       except ConnectionRefusedError:
@@ -84,17 +94,22 @@ class Client:
       if key.data:
         client_socket = key.fileobj
         if mask & selectors.EVENT_READ:
-          print('====================000')
           try:
             recv_data = client_socket.recv(1024)
             if recv_data:
-              print(f'RECEIVED MESSAGE FROM SERVER {recv_data.decode()}')
+              data = json.loads(recv_data.decode())
+              self.last_server_msg = data
               self.awaiting_server_reply = False
+
+              if 'message' in data and data['message'] is not None:
+                print(data['message'])
             else:
-              # Server closed the connection
               self.quit = True
               break
           except ConnectionResetError:
             print('Connection with server reset unexpectedly.')
             self.quit = True
             break
+
+  def clear_screen(self):
+    os.system('cls' if os.name == 'nt' else 'clear')

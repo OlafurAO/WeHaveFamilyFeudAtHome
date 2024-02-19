@@ -11,7 +11,7 @@ class QuestionRepo:
 		self.answered_questions = []
 		self.question_count = len(self.question_indexes)
 
-	def get_new_question(self) -> str:
+	def get_new_question(self):
 		byte_offset = self.get_new_byte_offset()
 		with open(self.binary_file_path, "rb") as binary_file:
 			binary_file.seek(byte_offset)
