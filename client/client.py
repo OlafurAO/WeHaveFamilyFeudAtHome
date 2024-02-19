@@ -18,6 +18,7 @@ class Client:
     self.selector = selectors.DefaultSelector()
     self.menu = Menu()
     self.client_socket = None
+    self.awaiting_server_reply = False
     self.client_state = ClientState.MENU
     self.join_server_fields = { 'IP_ADDRESS': None, 'PORT': None, 'PASSWORD': None }
     self.quit = False
@@ -36,23 +37,23 @@ class Client:
     elif self.client_state == ClientState.PLAY:
       pass
 
-    #if self.client_socket is not None:
+    if self.client_socket is not None:
+      self.receive_server_message()
       
-
-    print('>$', end='')
-    self.process_command(input())
+    if not self.awaiting_server_reply:
+      print('>$', end='')
+      self.process_command(input())
 
   def process_command(self, command: str):
     if self.client_state == ClientState.MENU:
       self.menu.process_menu_commands(self.server, self.join_server_fields, self.join_server, command)
     elif self.client_state == ClientState.PLAY:
       self.send_server_message(command)
-      self.receive_server_message()
 
   def join_server(self, server_fields):
     time.sleep(1)
     # TODO: replace with server_fields values
-    server_address = ('192.168.1.86', 58008)
+    server_address = ('192.168.1.225', 58008)
     max_retries = 5
 
     for attempt in range(max_retries):
@@ -69,22 +70,26 @@ class Client:
         self.selector.register(self.client_socket, events, data=data)
 
         self.client_state = ClientState.PLAY
+        self.receive_server_message()
         break
       except ConnectionRefusedError:
         time.sleep(1)
 
   def send_server_message(self, command):
     self.client_socket.sendall(command.encode())
+    self.awaiting_server_reply = True
 
   def receive_server_message(self):
     for key, mask in self.selector.select(timeout=86400):
       if key.data:
         client_socket = key.fileobj
         if mask & selectors.EVENT_READ:
+          print('====================000')
           try:
             recv_data = client_socket.recv(1024)
             if recv_data:
               print(f'RECEIVED MESSAGE FROM SERVER {recv_data.decode()}')
+              self.awaiting_server_reply = False
             else:
               # Server closed the connection
               self.quit = True
