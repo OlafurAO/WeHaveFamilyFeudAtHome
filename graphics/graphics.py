@@ -5,26 +5,39 @@ class Graphics:
     print('=====================\n')
 
   def display_game_board(self, question_status):
-    self.display_logo()
+    question_length = len(question_status['question'])
+    current_total = str(question_status['current_total'])
     print(question_status)
-    print('''
-    =====================
-    -----FAMILY FEUD-----
-    =====================
-    Name something you'd do on a nice sunny day
-    ===========================================
-                      35
+    print('\n', question_status['question'])
+    print('\n', '=' * question_length)
+    print((int(question_length / 2) - len(current_total) - 1) * ' ', current_total, '\n')
 
-    —————————————————     —————————————————  
-    | Ride bike  | 35 |   | Ride bike  | 35 |
-    —————————————————     —————————————————
-    —————————————————
-    | Ride bike  | 35 |
-    —————————————————
-    —————————————————
-    | Ride bike  | 35 |
-    —————————————————
-    ''')
+    longest_answer_length = len(max(question_status['answers'], key=lambda x: len(x['answer']))['answer'])
+    question_count = len(question_status['answers'])
+    for answer_index in range(4 if question_count >= 4 else question_count):
+      answer = question_status['answers'][answer_index]      
+      continue_line = True if question_count > 4 + answer_index else False
+      next_answer = None
+
+      if continue_line:
+        next_answer = question_status['answers'][4 + answer_index]
+
+      vertical_border_str = '—' * (longest_answer_length + 8)
+
+      print('', vertical_border_str, end='' if continue_line else None)
+      if continue_line:
+        print(' ' * 2, vertical_border_str)
+
+      print(f'| {answer["answer"] if not answer["hide"] else " " * longest_answer_length}', end='')
+      print(' ' * (longest_answer_length - len(answer["answer"]) + 1), f'| {answer["score"] if not answer["hide"] else "    "} |', end='' if continue_line else None)
+
+      if next_answer is not None:
+        print(f' | {next_answer["answer"] if not next_answer["hide"] else " " * longest_answer_length}', end='')
+        print(' ' * (longest_answer_length - len(next_answer["answer"]) + 1), f' | {next_answer["score"] if not next_answer["hide"] else "    "} |')
+
+      print('', vertical_border_str, end='' if continue_line else None)
+      if continue_line:
+        print('  ', vertical_border_str)
 
   def display_main_menu(self):
     self.display_logo()
