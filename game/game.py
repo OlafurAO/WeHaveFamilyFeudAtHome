@@ -33,6 +33,9 @@ class Game:
         self.game_state = GameState.PLAY
       else:
         data.outb += self.get_json_obj('WAITING FOR OTHER PLAYERS...')
+    elif self.game_state == GameState.PLAY:
+      self.question_status.guess_answer(command, client_ip)
+
 
   def update_game(self, data):
     if self.game_state == GameState.SET_NAME:
@@ -42,6 +45,8 @@ class Game:
         self.question_status = QuestionStatus(self.question_repo.get_new_question())
         # TODO: remove and implement buzzer shit
         self.question_status.set_player_answering(random.choice(self.players))
+      else:
+        pass    
 
     data.outb += self.get_json_obj()
 
@@ -94,6 +99,12 @@ class QuestionStatus:
   def set_player_answering(self, player):
     self.player_answering = player
     self.strikes = 0
+
+  def guess_answer(self, answer: str, client_ip):
+    for a in self.answers:      
+      if a['answer'].lower() == answer.lower() and a['hide'] == True:
+        self.current_total += a['score']
+        a['hide'] = False
 
   def __dict__(self):
     return {

@@ -28,12 +28,18 @@ class Graphics:
       if continue_line:
         print(' ' * 2, vertical_border_str)
 
-      print(f'| {answer["answer"] if not answer["hide"] else " " * longest_answer_length}', end='')
-      print(' ' * (longest_answer_length - len(answer["answer"]) + 1), f'| {answer["score"] if not answer["hide"] else "    "} |', end='' if continue_line else None)
+      if answer['hide']:
+        print('|', ' ' * (longest_answer_length + 6), '|', end='' if continue_line else None)
+      else:
+        print(f'| {answer["answer"]}', end='')
+        print(' ' * (longest_answer_length - len(answer["answer"]) + 1), f'| {answer["score"]} |', end='' if continue_line else None)
 
       if next_answer is not None:
-        print(f' | {next_answer["answer"] if not next_answer["hide"] else " " * longest_answer_length}', end='')
-        print(' ' * (longest_answer_length - len(next_answer["answer"]) + 1), f' | {next_answer["score"] if not next_answer["hide"] else "    "} |')
+        if next_answer['hide']:
+          print(' |', ' ' * (longest_answer_length + 6), '|')
+        else:
+          print(f' | {next_answer["answer"]}', end='')
+          print(' ' * (longest_answer_length - len(next_answer["answer"]) + 2), f'| {next_answer["score"]} |')
 
       print('', vertical_border_str, end='' if continue_line else None)
       if continue_line:
