@@ -15,7 +15,7 @@ class Graphics:
     longest_answer_length = len(max(question_status['answers'], key=lambda x: len(x['answer']))['answer'])
     question_count = len(question_status['answers'])
     for answer_index in range(4 if question_count >= 4 else question_count):
-      answer = question_status['answers'][answer_index]      
+      answer = question_status['answers'][answer_index]
       continue_line = True if question_count > 4 + answer_index else False
       next_answer = None
 
@@ -44,6 +44,12 @@ class Graphics:
       print('', vertical_border_str, end='' if continue_line else None)
       if continue_line:
         print('  ', vertical_border_str)
+      print()
+
+  def display_player_scores(self, players):
+    for player in players:
+      print(f'{player["name"]}: {player["score"]}')
+    print()
 
   def display_main_menu(self):
     self.display_logo()

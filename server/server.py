@@ -50,8 +50,7 @@ class Server:
 		self.selector.register(client_socket, events, data=data)
 		print(f'CLIENT {client_address} CONNECTED')
 
-		self.game.register_user(client_address[0])
-
+		self.game.register_user(client_address[0], client_socket)
 		data.outb += self.game.get_json_obj('NAME:')
 
 		#client_thread = threading.Thread(target=self.handle_connection, args=(client_socket, client_address))
@@ -74,8 +73,16 @@ class Server:
 				client_socket.close()
 		if mask & selectors.EVENT_WRITE:
 			if data.outb:
-				sent = client_socket.send(data.outb)
-				data.outb = data.outb[sent:]
+				if self.game.is_game_ready():
+					if self.game.is_game_ready():
+						for player in self.game.players:
+							try:
+								player.socket.send(data.outb)
+							except Exception as e:
+								print('ERROR SENDING TO CLIENT...')
+				else:
+					sent = client_socket.send(data.outb)
+					data.outb = data.outb[sent:]
 
 	def get_host_info(self):
 		hostname = socket.gethostname()

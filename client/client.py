@@ -48,8 +48,14 @@ class Client:
       if self.last_server_msg is not None and self.last_server_msg['game_state'] == 'PLAY':
         self.clear_screen()
         self.graphics.display_game_board(self.last_server_msg['question_status'])
+        self.graphics.display_player_scores(self.last_server_msg['players'])
 
     if not self.awaiting_server_reply:
+      if self.last_server_msg is not None:
+        prompt_message = self.last_server_msg['message']
+        if prompt_message is not None:
+          print(prompt_message)
+
       print('>$', end='')
       self.process_command(input())
 
@@ -62,7 +68,7 @@ class Client:
   def join_server(self, server_fields):
     time.sleep(1)
     # TODO: replace with server_fields values
-    server_address = ('192.168.1.225', 58008)
+    server_address = ('192.168.1.86', 58008)
     max_retries = 5
 
     for attempt in range(max_retries):
@@ -100,9 +106,6 @@ class Client:
               data = json.loads(recv_data.decode())
               self.last_server_msg = data
               self.awaiting_server_reply = False
-
-              if 'message' in data and data['message'] is not None:
-                print(data['message'])
             else:
               self.quit = True
               break

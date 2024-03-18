@@ -17,8 +17,8 @@ class Game:
     self.players = []
     self.game_state = GameState.SET_NAME
 
-  def register_user(self, ip_address):
-    self.players.append(Player(ip_address))
+  def register_user(self, ip_address, socket):
+    self.players.append(Player(ip_address, socket))
 
   def remove_user(self, ip_address):
     self.players = [player for player in self.players if player.ip_address != ip_address]
@@ -38,6 +38,7 @@ class Game:
 
 
   def update_game(self, data):
+    message = None
     if self.game_state == GameState.SET_NAME:
       return
     elif self.game_state == GameState.PLAY:
@@ -45,10 +46,10 @@ class Game:
         self.question_status = QuestionStatus(self.question_repo.get_new_question())
         # TODO: remove and implement buzzer shit
         self.question_status.set_player_answering(random.choice(self.players))
-      else:
-        pass    
 
-    data.outb += self.get_json_obj()
+      message = 'TYPE YOUR ANSWER:'
+
+    data.outb += self.get_json_obj(message=message)
 
   def get_json_obj(self, message: str = None):
     return json.dumps({
@@ -60,15 +61,16 @@ class Game:
     }).encode()
 
   def is_game_ready(self):
-    return True
+    #return True
     return len(self.players) == MAX_PLAYERS
 
   def is_selecting_name(self):
     return self.game_state == GameState.SET_NAME
 
 class Player:
-  def __init__(self, ip_address) -> None:
+  def __init__(self, ip_address, socket) -> None:
     self.ip_address = ip_address
+    self.socket = socket
     self.name = ''
     self.score = 0
   
@@ -101,7 +103,7 @@ class QuestionStatus:
     self.strikes = 0
 
   def guess_answer(self, answer: str, client_ip):
-    for a in self.answers:      
+    for a in self.answers:
       if a['answer'].lower() == answer.lower() and a['hide'] == True:
         self.current_total += a['score']
         a['hide'] = False
